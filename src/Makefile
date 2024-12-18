@@ -1,9 +1,9 @@
 CC=gcc
 CFLAGS=-Wall -Wextra -std=c99 -pedantic -ggdb
-LIBS=-lraylib
-DEPS=lib.h
+LIBS=-lncurses
+DEPS=ui.h
 
-all: main.o lib.o $(DEPS)
+all: main.o ui.o $(DEPS)
 	@$(CC) $(CFLAGS) $(LIBS) $^ -o out
 	@echo CC $^
 
