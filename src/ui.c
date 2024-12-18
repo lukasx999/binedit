@@ -6,6 +6,7 @@
 #include <assert.h>
 
 #include "./ui.h"
+#include "hexedit.h"
 
 #include <ncurses.h>
 
@@ -27,19 +28,27 @@ static void byte_to_string(char *buf, uint8_t byte) {
 }
 
 
-static void render_bytes(uint8_t **bytes, size_t rows, size_t columns, size_t gap) {
 
-    for (size_t row=0; row < rows; ++row) {
-        for (size_t col=0; col < columns; ++col) {
+static void render_bytes(HexEditor *he, size_t gap, size_t columns) {
 
-            uint8_t byte = bytes[row][col];
+    int row = 0;
+    size_t indent = 0;
 
-            char buf[3] = { 0 };
-            byte_to_string(buf, byte);
+    for (size_t i=1; i < he->bytes_count; ++i) {
 
-            mvprintw(row, col*gap, "%s", buf);
+        size_t index = i - 1;
 
+        char buf[3] = { 0 };
+        uint8_t byte = he->bytes[index];
+        byte_to_string(buf, byte);
+
+        mvprintw(row, (index-indent) * gap, "%s", buf);
+
+        if (i % columns == 0) {
+            row++;
+            indent += columns;
         }
+
     }
 
 }
@@ -48,47 +57,51 @@ static void render_bytes(uint8_t **bytes, size_t rows, size_t columns, size_t ga
 
 
 
-void ui_loop(uint8_t **bytes, size_t rows, size_t columns) {
 
 
-    size_t cursor_x = 0;
-    size_t cursor_y = 0;
-
-
-
-
+void ui_loop(HexEditor *hexedit) {
 
     initscr();
+    curs_set(0);
+
+
+    size_t columns = 16;
 
     bool quit = false;
     while (!quit) {
 
         size_t gap = 3;
 
-        render_bytes(bytes, rows, columns, gap);
-
         int screen_width  = getmaxx(stdscr);
         int screen_height = getmaxy(stdscr);
 
+        if (columns < 1) {
+            columns = 1;
+        }
 
+        // if (columns*2 > screen_height) {
+        //     columns = screen_height;
+        // }
 
+        render_bytes(hexedit, gap, columns);
 
-        move(cursor_y, cursor_x);
 
 
         int c = getch();
         switch (c) {
+            case '+': {
+                columns++;
+            } break;
+            case '-': {
+                columns--;
+            } break;
             case 'j': {
-                cursor_y++;
             } break;
             case 'k': {
-                cursor_y--;
             } break;
             case 'h': {
-                cursor_x -= gap;
             } break;
             case 'l': {
-                cursor_x += gap;
             } break;
             case 'q': {
                 quit = true;

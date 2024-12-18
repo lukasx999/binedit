@@ -1,13 +1,14 @@
-#ifndef _LIB_H
-#define _LIB_H
+#ifndef _UI_H
+#define _UI_H
 
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "./hexedit.h"
 
-extern void ui_loop(uint8_t **bytes, size_t rows, size_t columns);
+extern void ui_loop(HexEditor *hexedit);
 
 
 
-#endif // _LIB_H
+#endif // _UI_H
