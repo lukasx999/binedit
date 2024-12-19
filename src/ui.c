@@ -6,9 +6,15 @@
 #include <assert.h>
 
 #include "./ui.h"
-#include "hexedit.h"
+#include "./hexedit.h"
 
 #include <ncurses.h>
+
+
+
+#define GAP 3
+#define HIGHLIGHT 1
+
 
 
 
@@ -29,12 +35,14 @@ static void byte_to_string(char *buf, uint8_t byte) {
 
 
 
-static void render_bytes(HexEditor *he, size_t gap, size_t columns) {
+static void render_bytes(UiState *ui) {
 
     int row = 0;
     size_t indent = 0;
 
-    for (size_t i=1; i < he->bytes_count; ++i) {
+    HexEditor *he = ui->hexedit;
+
+    for (size_t i=1; i < he->bytes_size; ++i) {
 
         size_t index = i - 1;
 
@@ -42,11 +50,19 @@ static void render_bytes(HexEditor *he, size_t gap, size_t columns) {
         uint8_t byte = he->bytes[index];
         byte_to_string(buf, byte);
 
-        mvprintw(row, (index-indent) * gap, "%s", buf);
+        if ((size_t) row == ui->visual_cursor_row &&
+            ui->visual_cursor_column == index-indent
+        ) {
+            color_set(HIGHLIGHT, 0);
+        } else {
+            color_set(0, 0);
+        }
 
-        if (i % columns == 0) {
+        mvprintw(row, (index-indent) * GAP, "%s", buf);
+
+        if (i % ui->columns == 0) {
             row++;
-            indent += columns;
+            indent += ui->columns;
         }
 
     }
@@ -55,53 +71,66 @@ static void render_bytes(HexEditor *he, size_t gap, size_t columns) {
 
 
 
+static void columns_bounds_check(UiState *ui) {
+    int screen_width  = getmaxx(stdscr);
+    if (ui->columns < 1) {
+        ui->columns = 1;
+    }
+    if (ui->columns * 3 > (size_t) screen_width) {
+        ui->columns = screen_width/3;
+    }
+}
+
+
+UiState ui_new(HexEditor *he) {
+    UiState ui = {
+        .columns = 16,
+        .hexedit = he,
+        .visual_cursor_column = 0,
+        .visual_cursor_row    = 0,
+    };
+    return ui;
+}
 
 
 
-
-void ui_loop(HexEditor *hexedit) {
+void ui_loop(UiState *ui) {
 
     initscr();
     curs_set(0);
+    start_color();
 
+    init_pair(HIGHLIGHT, COLOR_BLACK, COLOR_WHITE);
 
-    size_t columns = 16;
 
     bool quit = false;
     while (!quit) {
 
-        size_t gap = 3;
+        columns_bounds_check(ui);
 
-        int screen_width  = getmaxx(stdscr);
-        int screen_height = getmaxy(stdscr);
-
-        if (columns < 1) {
-            columns = 1;
-        }
-
-        // if (columns*2 > screen_height) {
-        //     columns = screen_height;
-        // }
-
-        render_bytes(hexedit, gap, columns);
+        render_bytes(ui);
 
 
 
         int c = getch();
         switch (c) {
             case '+': {
-                columns++;
+                ui->columns++;
             } break;
             case '-': {
-                columns--;
+                ui->columns--;
             } break;
             case 'j': {
+                ui->visual_cursor_row++;
             } break;
             case 'k': {
+                ui->visual_cursor_row--;
             } break;
             case 'h': {
+                ui->visual_cursor_column--;
             } break;
             case 'l': {
+                ui->visual_cursor_column++;
             } break;
             case 'q': {
                 quit = true;

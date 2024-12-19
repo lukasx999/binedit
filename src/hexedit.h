@@ -8,7 +8,8 @@
 
 typedef struct {
     uint8_t *bytes;
-    size_t bytes_count;
+    size_t bytes_size;
+    size_t bytes_capacity;
 
     size_t cursor_row;
     size_t cursor_column;

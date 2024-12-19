@@ -7,7 +7,18 @@
 
 #include "./hexedit.h"
 
-extern void ui_loop(HexEditor *hexedit);
+
+typedef struct {
+    size_t columns;
+    size_t visual_cursor_row;
+    size_t visual_cursor_column;
+    HexEditor *hexedit;
+} UiState;
+
+
+extern UiState ui_new(HexEditor *he);
+extern void ui_loop(UiState *ui);
+
 
 
 

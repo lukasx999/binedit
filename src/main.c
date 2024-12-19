@@ -28,7 +28,8 @@ int main(void) {
 
     HexEditor hexeditor = hexeditor_new(filename);
 
-    ui_loop(&hexeditor);
+    UiState ui = ui_new(&hexeditor);
+    ui_loop(&ui);
 
 
     return EXIT_SUCCESS;

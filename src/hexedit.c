@@ -36,16 +36,25 @@ static uint8_t* read_file(const char *filename, size_t *out_size) {
 
 
 
+void hexeditor_delete(HexEditor *he) {
+
+
+}
+
+
+
 HexEditor hexeditor_new(const char *filename) {
 
     HexEditor hexeditor = {
-        .bytes         = NULL,
-        .bytes_count   = 0,
-        .cursor_column = 0,
-        .cursor_row    = 0,
+        .bytes          = NULL,
+        .bytes_capacity = 5,
+        .bytes_size     = 0,
+        .cursor_column  = 0,
+        .cursor_row     = 0,
     };
 
-    hexeditor.bytes = read_file(filename, &hexeditor.bytes_count);
+    hexeditor.bytes = read_file(filename, &hexeditor.bytes_capacity);
+    hexeditor.bytes_size = hexeditor.bytes_capacity;
     if (hexeditor.bytes == NULL) {
         fprintf(stderr, "Failed to read file\n");
         exit(1);
